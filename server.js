@@ -20,14 +20,13 @@ app.use(express.json());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100
+  max: 10  // limit each IP to 10 requests per minute
 });
 app.use(limiter);
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth.routes'));
 
-//app.use('/api/code', require('./src/routes/execute.routes'));
 app.use('/api/code', codeRoutes);
 
 // Start Server

@@ -6,6 +6,8 @@ const router = express.Router();
 const authMiddleware = require('../middlewares/auth.middleware');
 const executeCode = require('../services/codeExecutor');
 const CodeSnippet = require('../models/CodeSnippet');
+const { v4: uuidv4 } = require('uuid');
+const sendToQueue = require('../services/messageQueue'); // adjust path if needed
 
 router.post('/execute', authMiddleware, async (req, res) => {
   const { language, code } = req.body;
@@ -15,24 +17,33 @@ router.post('/execute', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Language and code are required' });
   }
 
-  try {
-    const result = await executeCode(language, code);
+  const requestId = uuidv4();
 
+  try {
+    // Save the code snippet with "pending" status
     const snippet = new CodeSnippet({
       userId,
       language,
       code,
-      result,
+      result: 'Pending...',
+      requestId
     });
 
     await snippet.save();
 
-    res.json({ output: result });
+    // Send message to queue
+    await sendToQueue(language, { code, requestId, userId });
+
+    res.status(202).json({
+      message: 'Code sent for execution',
+      requestId
+    });
   } catch (err) {
-    console.error('Execution error:', err);
-    res.status(500).json({ error: 'Code execution failed' });
+    console.error('Queue send error:', err);
+    res.status(500).json({ error: 'Failed to queue code for execution' });
   }
 });
+
 
 router.get('/snippets', authMiddleware, async (req, res) => {
   const userId = req.userId;

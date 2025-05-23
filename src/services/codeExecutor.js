@@ -14,7 +14,7 @@ const toDockerPath = (windowsPath) => {
 
 const executeCode = (language, code) => {
   return new Promise((resolve, reject) => {
-    //if (language !== 'python') return reject('Unsupported language');
+    
     // console.log('Here:');
     const jobId = uuid();
     let filename, image, containerPath;
@@ -39,15 +39,10 @@ const executeCode = (language, code) => {
     console.log('filePath:', filePath);
 
     
-    const dockerCmd = `docker run --rm -v "${filePath}:${containerPath}" ${image}`;
+    const dockerCmd = `docker run --rm --memory=128m --cpus=0.5 -v "${filePath}:${containerPath}" ${image}`;
     console.log('Executing:', dockerCmd);
     
-    //const dockerFilePath = toDockerPath(filePath);
-    //console.log('dockerFilePath:', dockerFilePath);
-    //const dockerCmd = `docker run --rm -v "${dockerFilePath}:/app/code.py" python-runner`;
-
-    //console.log(`Executing: ${dockerCmd}`);
-
+    
     exec(dockerCmd, { timeout: 5000 }, (error, stdout, stderr) => {
       // Clean up
       fs.unlinkSync(filePath);

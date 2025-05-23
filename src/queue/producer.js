@@ -1,20 +1,18 @@
 const amqp = require('amqplib');
 
-async function sendToQueue(language, code) {
+async function sendToQueue(language, message) {
   const connection = await amqp.connect('amqp://localhost');
   const channel = await connection.createChannel();
 
-  const queue = 'code_execution';
-  await channel.assertQueue(queue, { durable: true });
+  const queueName = language.toLowerCase(); // 🟢 Match what consumers use
 
-  const message = JSON.stringify({ language, code });
-  channel.sendToQueue(queue, Buffer.from(message), { persistent: true });
+  await channel.assertQueue(queueName, { durable: false });
+  channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
 
-  console.log(`Message sent to queue: ${message}`);
+  console.log(`Message sent to ${queueName}:`, message);
 
-  setTimeout(() => {
-    connection.close();
-  }, 500);
+  await channel.close();
+  await connection.close();
 }
 
-module.exports = sendToQueue;
+module.exports = { sendToQueue };

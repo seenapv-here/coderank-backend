@@ -5,6 +5,7 @@ const CodeSnippetSchema = new mongoose.Schema({
   language: { type: String, required: true },
   code: { type: String, required: true },
   output: { type: String },
+  requestId: { type: String }, 
   createdAt: { type: Date, default: Date.now }
 });
 

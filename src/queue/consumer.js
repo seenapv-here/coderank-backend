@@ -2,6 +2,21 @@ const amqp = require('amqplib');
 const executeCode = require('../services/codeExecutor'); 
 const CodeSnippet = require('../models/CodeSnippet'); 
 
+const fs = require('fs');
+const path = require('path');
+
+const OUTPUT_DIR = path.join(__dirname, '../output'); // e.g., ./output/
+
+if (!fs.existsSync(OUTPUT_DIR)) {
+  fs.mkdirSync(OUTPUT_DIR);
+}
+
+function saveOutputToFile(requestId, output) {
+  const filePath = path.join(OUTPUT_DIR, `${requestId}.txt`);
+  fs.writeFileSync(filePath, output);
+  return filePath;
+}
+
 async function startConsumer(queueName, io) {
   const connection = await amqp.connect('amqp://localhost');
   const channel = await connection.createChannel();
@@ -18,10 +33,13 @@ async function startConsumer(queueName, io) {
       try {
         const output = await executeCode(language, code);
 
+         // Save output to file or S3
+        const outputPath = saveOutputToFile(requestId, output); // or await saveOutputToS3()
+        
         // Update DB record
         await CodeSnippet.findOneAndUpdate(
           { requestId },
-          { output, status: 'completed' }
+          { outputPath: outputPath, status: 'completed' }
         );
 
         // Emit real-time result to frontend

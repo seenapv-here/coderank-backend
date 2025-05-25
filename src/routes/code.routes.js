@@ -7,6 +7,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
 const CodeSnippet = require('../models/CodeSnippet');
 const { v4: uuidv4 } = require('uuid');
 const { sendToQueue } = require('../queue/producer'); // Make sure this path is correct
+const fs = require('fs');
 
 // POST /execute — Send code to RabbitMQ
 router.post('/execute', authMiddleware, async (req, res) => {
@@ -73,9 +74,19 @@ router.get('/status/:requestId', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Snippet not found' });
     }
 
+    let output = '';
+    if (snippet.outputPath) {
+      // Local file example:
+      output = fs.readFileSync(snippet.outputPath, 'utf-8');
+     
+      // OR if S3:
+      // const s3Object = await s3.getObject({ Bucket, Key: snippet.outputPath }).promise();
+      // output = s3Object.Body.toString('utf-8');
+    }
+
     res.json({
       status: snippet.status,
-      output: snippet.output
+      output
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch status' });

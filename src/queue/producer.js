@@ -9,7 +9,7 @@ async function sendToQueue(language, message) {
   await channel.assertQueue(queueName, { durable: false });
   channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
 
-  console.log(`Message sent to ${queueName}:`, message);
+  //console.log(`Message sent to ${queueName}:`, message);
 
   await channel.close();
   await connection.close();

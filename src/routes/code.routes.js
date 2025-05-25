@@ -26,6 +26,7 @@ router.post('/execute', authMiddleware, async (req, res) => {
       language,
       code,
       output: 'Pending...',
+      status: 'pending',
       requestId,
     });
 
@@ -34,11 +35,6 @@ router.post('/execute', authMiddleware, async (req, res) => {
     console.log(`Sending to queue: ${language}, with requestId: ${requestId}`);
 
     // Send to RabbitMQ queue
-    // await sendToQueue(language, {
-    //   code,
-    //   requestId,
-    //   userId,
-    // });
     await sendToQueue(language, { language, code, requestId, userId });
     console.log(`Sent to queue: ${language}, with requestId: ${requestId}`);
 
@@ -61,6 +57,41 @@ router.get('/snippets', authMiddleware, async (req, res) => {
     res.json(snippets);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch snippets' });
+  }
+});
+
+// GET /status/:requestId — check execution status by requestId
+router.get('/status/:requestId', authMiddleware, async (req, res) => {
+  const { requestId } = req.params;
+  const userId = req.userId;
+  console.log(`Checking status for requestId: ${requestId}, userId: ${userId}`);
+
+  try {
+    const snippet = await CodeSnippet.findOne({ requestId, userId });
+
+    if (!snippet) {
+      return res.status(404).json({ error: 'Snippet not found' });
+    }
+
+    res.json({
+      status: snippet.status,
+      output: snippet.output
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch status' });
+  }
+});
+
+router.get('/history/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const snippets = await CodeSnippet.find({ userId })
+      .sort({ createdAt: -1 }); // Most recent first
+
+    res.json(snippets);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
 

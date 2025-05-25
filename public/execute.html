@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Code Executor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    textarea {
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border: 1px solid #ddd;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Run Your Code</h2>
+
+  <form id="codeForm">
+    <label for="language">Select Language:</label>
+    <select id="language" required>
+      <option value="python">Python</option>
+      <option value="javascript">JavaScript</option>
+    </select>
+
+    <br><br>
+
+    <label for="code">Your Code:</label><br>
+    <textarea id="code" rows="10" cols="60" placeholder="Write your code here..." required></textarea>
+
+    <br><br>
+    <button type="button" id="runCodeButton">Run Code</button>
+  </form>
+
+  <h3>Output:</h3>
+  <pre id="output">Awaiting submission...</pre>
+
+  <!-- Link to external script -->
+  <script src="execute.js"></script>
+</body>
+</html>

@@ -3,7 +3,6 @@ const path = require('path');
 const { v4: uuid } = require('uuid');
 const { exec } = require('child_process');
 
-//const tempDir = path.join(__dirname, '..', 'temp');
 const tempDir = 'C:/code-exec-temp';
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
@@ -14,45 +13,44 @@ const toDockerPath = (windowsPath) => {
 
 const executeCode = (language, code) => {
   return new Promise((resolve, reject) => {
-    
-    // console.log('Here:');
     const jobId = uuid();
     let filename, image, containerPath;
-    //console.log('language:', language);
 
-     if (language === 'python') {
+    if (language === 'python') {
       filename = `${jobId}.py`;
       image = 'python-runner';
       containerPath = '/app/code.py';
     } else if (language === 'javascript') {
-      //console.log('language:', language);
       filename = `${jobId}.js`;
       image = 'javascript-runner';
       containerPath = '/app/code.js';
     } else {
-      return reject('Unsupported language');
+      return reject(new Error('Unsupported language'));
     }
 
-    //const filename = `${jobId}.py`;
     const filePath = path.join(tempDir, filename);
     fs.writeFileSync(filePath, code, { encoding: 'utf8' });
-    console.log('filePath:', filePath);
 
-    
     const dockerCmd = `docker run --rm --memory=128m --cpus=0.5 -v "${filePath}:${containerPath}" ${image}`;
     console.log('Executing:', dockerCmd);
-    
-    
-    exec(dockerCmd, { timeout: 5000 }, (error, stdout, stderr) => {
-      // Clean up
-      fs.unlinkSync(filePath);
 
-       //console.log('stdout:', stdout);
+    exec(dockerCmd, { timeout: 5000 }, (error, stdout, stderr) => {
+      fs.unlinkSync(filePath); // Always clean up
+
       if (error) {
-        console.error('Execution Error:', error);
-        return resolve(stderr || error.message);
+        if (error.killed) {
+          return reject(new Error('Execution timed out'));
+        } else {
+          const errMsg = stderr || error.message || 'Unknown error occurred';
+          return reject(new Error(errMsg.trim()));
+        }
       }
-      resolve(stdout);
+
+      if (stderr && stderr.trim()) {
+        return reject(new Error(stderr.trim()));
+      }
+
+      resolve(stdout.trim());
     });
   });
 };

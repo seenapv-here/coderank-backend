@@ -6,7 +6,7 @@ const CodeSnippetSchema = new mongoose.Schema({
   code: { type: String, required: true },
   output: { type: String },
   requestId: { type: String }, 
-  createdAt: { type: Date, default: Date.now }
-});
+  status: { type: String, enum: ['pending', 'completed', 'error'], default: 'pending' },
+}, { timestamps: true }); //This adds createdAt and updatedAt
 
 module.exports = mongoose.model('CodeSnippet', CodeSnippetSchema);

@@ -4,7 +4,7 @@ async function sendToQueue(language, message) {
   const connection = await amqp.connect('amqp://localhost');
   const channel = await connection.createChannel();
 
-  const queueName = language.toLowerCase(); // 🟢 Match what consumers use
+  const queueName = language.toLowerCase(); // Match what consumers use
 
   await channel.assertQueue(queueName, { durable: false });
   channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));

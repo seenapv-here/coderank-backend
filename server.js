@@ -56,16 +56,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// const path = require('path');
-
-
-// app.use(express.static('public'));
-// // Serve index.html for root path
-// app.get('/', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-// });
 const path = require('path');
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Fallback route for frontend files
